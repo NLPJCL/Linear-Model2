@@ -1,5 +1,6 @@
-#pragma once
+ï»¿#pragma once
 #include<iostream>
+#include<unordered_map>
 #include<map>
 #include<vector>
 #include"dataset.h"
@@ -11,30 +12,30 @@ public:
 	void create_feature_space();
 	void online_training();
 	linear_model();
-	//´æ´¢¡£
+	//å­˜å‚¨ã€‚
 	void save_file(int i);
 	~linear_model();
 private:
-	//»ù´¡Êı¾İ¼¯¡£
+	//åŸºç¡€æ•°æ®é›†ã€‚
 	dataset train;
 	dataset dev;
 	dataset test;
-	map<string, int> model;//ÌØÕ÷¿Õ¼ä¡£
-	map<string, int> tag;//´ÊĞÔ
+	unordered_map<string, int> model;//ç‰¹å¾ç©ºé—´ã€‚
+	map<string, int> tag;//è¯æ€§
 	vector<int> w;
 	vector<int>v;
-	map<int, int> v_times;
+	unordered_map<int, int> v_times;
 	vector<string> value;
-	//´´½¨ÌØÕ÷¿Õ¼ä¡£
+	//åˆ›å»ºç‰¹å¾ç©ºé—´ã€‚
 	vector<string> create_feature(sentence sentence, int pos);
-	//ÔÚÏßËã·¨
+	//åœ¨çº¿ç®—æ³•
 	string maxscore_tag(sentence sen, int pos);
 	vector<int> get_id(vector<string> f);
 	void update_weight(sentence sen, int pos, string max_tag, string correct_tag);
 	int count_score(int offset, vector<int> fv);
 	int count_score_v(int offset, vector<int> fv);
 	string maxscore_tag_v(sentence  sen, int pos);
-	//ÆÀ¼Û¡£
+	//è¯„ä»·ã€‚
 	double evaluate(dataset);
 	double evaluate_v(dataset data);
 };
