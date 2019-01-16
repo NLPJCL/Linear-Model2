@@ -4,7 +4,6 @@
 using namespace std;
 int main()
 {
-	int i;
 	linear_model b;
 	b.create_feature_space();
 	b.online_training();
