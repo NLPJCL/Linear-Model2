@@ -1,0 +1,14 @@
+train共46572个句子，共1057943个词
+dev共2079个句子，共59955个词
+test共2796个句子，共81578个词
+iterator 0
+train=0.897766
+dev=0.873005
+test=0.873973
+Use Time:88.472
+iterator 1
+train=0.909368
+dev=0.88483
+test=0.879502
+Use Time:94.356
+iterator 2
