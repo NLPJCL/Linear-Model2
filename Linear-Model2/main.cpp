@@ -1,9 +1,10 @@
-#include<iostream>
+﻿#include<iostream>
 #include"dataset.h"
 #include"linear_model.h"
 using namespace std;
 int main()
 {
+	int i;
 	linear_model b;
 	b.create_feature_space();
 	b.online_training();
