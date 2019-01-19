@@ -1,4 +1,5 @@
-#include "dataset.h"
+ï»¿#include "dataset.h"
+#include<random>
 void dataset::read_data(const string & file_name)
 {
 	name = file_name;
@@ -27,7 +28,7 @@ void dataset::read_data(const string & file_name)
 		string tag = line.substr(t2, t3 - t2);
 		sen.word.push_back(word);
 		sen.tag.push_back(tag);
-		//¹¹½¨´ÊµÄµ¥¸öÔªËØ¡£
+		//æ„å»ºè¯çš„å•ä¸ªå…ƒç´ ã€‚
 		vector<string> word_char;
 		for (unsigned t4 = 0; t4 < word.size();)
 		{
@@ -46,6 +47,33 @@ void dataset::read_data(const string & file_name)
 	}
 	cout << name << ".conll contains sentence count " << sentence_count << endl;
 	cout << name << ".conll contains word count " << word_count << endl;
+}
+#include<ctime>
+#include<unordered_set>
+#include "time.h"
+#include"windows.h"
+void dataset::shuffle()
+{
+	cout << timeGetTime() << endl;
+	default_random_engine t(timeGetTime());
+
+	uniform_int_distribution<int> u(0, sentences.size()-1);
+
+	vector<sentence> sentences_;
+	unordered_set<int> unique;
+	int j = 0;
+	while (unique.size() != sentences.size())
+	{
+		j++;
+		int i = u(t);
+		if (unique.find(i)==unique.end())
+		{
+			sentences_.emplace_back(sentences[i]);
+			unique.insert(i);
+		}
+	}
+	sentences = sentences_;
+	cout << "ç»è¿‡" << j << "æ¬¡å¾ªç¯"<<endl;
 }
 
 dataset::dataset()

@@ -1,9 +1,14 @@
 train共803个句子，共20454个词
+
 dev共1910个句子，共50319个词
+
 iterator 0
 train=0.930087
+
 dev=0.825255
+
 Use Time:2.73
+
 iterator 1
 train=0.95991
 dev=0.837238
@@ -80,6 +85,12 @@ iterator 19
 train=0.999756
 dev=0.858105
 Use Time:2.586
+
+
+
+
 train最大值是:=0.999902
+
 dev最大值是:=0.858145
+
 Use Time:53.05

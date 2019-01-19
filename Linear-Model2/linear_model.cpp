@@ -1,6 +1,7 @@
 ﻿#include "linear_model.h"
+#include<numeric>
 //实例化特征
-vector<string> linear_model::create_feature(sentence sentence, int pos)
+vector<string> linear_model::create_feature(const sentence &sentence, int pos)
 {
 	string word = sentence.word[pos];//当前词。
 	string word_char_first = sentence.word_char[pos][0];//当前词的第一个元素。
@@ -31,6 +32,7 @@ vector<string> linear_model::create_feature(sentence sentence, int pos)
 		word_char_p1_first = sentence.word_char[pos + 1][0];
 	}
 	vector<string> f;
+	f.reserve(50);
 	f.emplace_back("02:*" + word);
 	f.emplace_back("03:*" + word_m1);
 	f.emplace_back("04:*" + word_p1);
@@ -39,7 +41,7 @@ vector<string> linear_model::create_feature(sentence sentence, int pos)
 	f.emplace_back("07:*" + word_char_first);
 	f.emplace_back("08:*" + word_char_last);
 	int pos_word_len = sentence.word_char[pos].size();
-	for (int k = 0; k < pos_word_len - 1; k++)
+	for (int k = 1; k < pos_word_len - 1; k++)
 	{
 		string cik = sentence.word_char[pos][k];
 		f.emplace_back("09:*" + cik);
@@ -51,6 +53,12 @@ vector<string> linear_model::create_feature(sentence sentence, int pos)
 			f.emplace_back("13:*" + cik + "*" + "consecutive");
 		}
 	}
+
+	if (sentence.word_char[pos].size() > 1)
+	{
+		if (sentence.word_char[pos][0] == sentence.word_char[pos][1])
+			f.emplace_back("13:*" + sentence.word_char[pos][0] + "*" + "consecutive");
+	}
 	if (pos_word_len == 1)
 	{
 		f.emplace_back("12:*" + word + "*" + word_char_m1m1 + "*" + word_char_p1_first);
@@ -58,19 +66,8 @@ vector<string> linear_model::create_feature(sentence sentence, int pos)
 	for (int k = 0; k <pos_word_len; k++)
 	{
 		if (k >= 4)break;
-		string prefix, suffix;
-		//获取前缀
-		for (int n = 0; n <= k; n++)
-		{
-			prefix = prefix + sentence.word_char[pos][n];
-		}
-		//获取后缀。
-		for (int n = pos_word_len - k - 1; n <= pos_word_len - 1; n++)
-		{
-			suffix = suffix + sentence.word_char[pos][n];
-		}
-		f.emplace_back("14:*" + prefix);
-		f.emplace_back("15:*" + suffix);
+		f.emplace_back("14:*" + accumulate(sentence.word_char[pos].begin(), sentence.word_char[pos].begin() + k + 1, string("")));
+		f.emplace_back("15:*" + accumulate(sentence.word_char[pos].end() - (k + 1), sentence.word_char[pos].end(), string("")));
 	}
 	return f;
 }
@@ -81,12 +78,11 @@ void linear_model::create_feature_space()
 	dev.read_data("dev");
 	test.read_data("test");
 	int count_feature = 0, count_tag = 0;
-	for (auto z = train.sentences.begin(); z != train.sentences.end(); z++)
+	for (auto z = train.sentences.begin(); z != train.sentences.end(); ++z)
 	{
 		for (int i = 0; i < z->word.size(); i++)
 		{
-			vector <string> f;
-			f = create_feature(*z, i);
+			vector <string> f=create_feature(*z, i);
 			for (auto q = f.begin(); q != f.end(); q++)
 			{
 				if (model.find(*q) == model.end())//如果不在词性里面。
@@ -115,7 +111,7 @@ void linear_model::create_feature_space()
 	cout << "the total number of tags is " << tag.size() << endl;
 
 }
-vector<int> linear_model::get_id(vector<string> f)
+vector<int> linear_model::get_id(vector<string> &f)
 {
 	vector<int> fv;
 	for (auto q = f.begin(); q != f.end(); q++)
@@ -129,12 +125,12 @@ vector<int> linear_model::get_id(vector<string> f)
 	return fv;
 }
 //更新权重。
-void linear_model::update_weight(sentence  sen, int pos, string max_tag, string correct_tag)
+void linear_model::update_weight(const sentence  &sen, int pos,const string &max_tag, const string &correct_tag)
 {
 
 	int max_id = tag[max_tag];
 	int correct_id = tag[correct_tag];
-	vector<string> f = create_feature(sen, pos);
+	vector<string> f=create_feature(sen, pos);
 	vector<int> fv = get_id(f);
 	for (auto z = fv.begin(); z != fv.end(); z++)
 	{
@@ -148,7 +144,7 @@ void linear_model::update_weight(sentence  sen, int pos, string max_tag, string 
 		//v_times[index1]++;
 	}
 }
-int linear_model::count_score(int offset, vector<int> fv)
+int linear_model::count_score(int offset, vector<int> &fv)
 {
 	double score = 0;
 	for (auto z0 = fv.begin(); z0 != fv.end(); z0++)
@@ -167,11 +163,11 @@ int linear_model::count_score_v(int offset, vector<int> fv)
 	return score;
 }
 
-string linear_model::maxscore_tag(sentence  sen, int pos)
+string linear_model::maxscore_tag(const sentence  &sen, int pos)
 {
 	double max_num = -1e10, score;
 	string max_tag;
-	vector<string> f = create_feature(sen, pos);
+	vector<string> f=create_feature(sen, pos);
 	vector<int> fv = get_id(f);
 	for (auto z = tag.begin(); z != tag.end(); z++)//遍历词性
 	{
@@ -190,7 +186,7 @@ string linear_model::maxscore_tag_v(sentence  sen, int pos)
 {
 	double max_num = -1e10, score;
 	string max_tag;
-	vector<string> f = create_feature(sen, pos);
+	vector<string> f=create_feature(sen, pos);
 	vector<int> fv = get_id(f);
 	for (auto z = tag.begin(); z != tag.end(); z++)//遍历词性
 	{
@@ -204,7 +200,7 @@ string linear_model::maxscore_tag_v(sentence  sen, int pos)
 	}
 	return max_tag;
 }
-double linear_model::evaluate(dataset data)
+double linear_model::evaluate(dataset & data)
 {
 	int c = 0, total = 0;
 	for (auto z = data.sentences.begin(); z != data.sentences.end(); z++)
@@ -245,7 +241,7 @@ void linear_model::online_training()
 	double max_train_precision = 0;
 	double max_dev_precision = 0;
 	double max_test_precision = 0;
-	ofstream result("big_result.txt");
+	ofstream result("small_result.txt");
 	if (!result)
 	{
 		cout << "don't open feature file" << endl;
@@ -255,12 +251,16 @@ void linear_model::online_training()
 	result << test.name << "共" << test.sentence_count << "个句子，共" << test.word_count << "个词" << endl;
 	DWORD t1, t2, t3, t4;
 	t1 = timeGetTime();
-	for (int i = 0; i < 20; i++)
+
+	for (int i = 0; i < 26; i++)
 	{
 		result<< "iterator " << i << endl;
 		cout << "iterator " << i << endl;
 		t3 = timeGetTime();
-		for (auto sen = train.sentences.begin(); sen != train.sentences.end(); sen++)
+
+		cout << "正在打乱数据" << endl;
+		train.shuffle();
+		for (auto sen = train.sentences.begin(); sen != train.sentences.end(); ++sen)
 		{
 			for (int pos = 0; pos < sen->word.size(); pos++)
 			{
@@ -284,7 +284,7 @@ void linear_model::online_training()
 		cout <<train.name << "=" << train_precision << endl;
 		//cout << train.name << "v=" << train_precision_v << endl;
 		double dev_precision = evaluate(dev);
-		//double dev_precision_v = evaluate_v(dev);
+	//	double dev_precision_v = evaluate_v(dev);
 		cout << dev.name << "=" << dev_precision << endl;
 		double test_precision = evaluate(test);
 		cout << test.name << "=" << test_precision << endl;
