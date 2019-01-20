@@ -139,12 +139,8 @@ void linear_model::update_weight(sentence  sen, int pos, string max_tag, string 
 	{
 		int index = correct_id * model.size() + *z;
 		w[index]++;
-		//v[index] += w[index];
-		//v_times[index]++;
 		int index1 = max_id * model.size() + *z;
 		w[index1]--;
-		//v[index1] += w[index1];
-		//v_times[index1]++;
 	}
 }
 int linear_model::count_score(int offset, vector<int> fv)
