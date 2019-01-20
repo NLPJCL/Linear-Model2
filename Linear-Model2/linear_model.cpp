@@ -181,7 +181,7 @@ string linear_model::maxscore_tag(const sentence  &sen, int pos,bool averaged)
 	{
 		int offset = z->second*model.size();
 		score = count_score(offset, fv, averaged);
-		if (score >=max_num+1e-10 )
+		if (score >max_num+1e-10 )
 		{
 			max_num = score;
 			max_tag = z->first;
