@@ -66,7 +66,7 @@ vector<string> linear_model::create_feature(const sentence &sentence, int pos)
 	}
 	for (int k = 0; k <pos_word_len; k++)
 	{
-		if (k >=4)break;
+		if (k >4)break;
 		f.emplace_back("14:*" + accumulate(sentence.word_char[pos].begin(), sentence.word_char[pos].begin() + k + 1, string("")));
 		f.emplace_back("15:*" + accumulate(sentence.word_char[pos].end() - (k + 1), sentence.word_char[pos].end(), string("")));
 	}
@@ -183,7 +183,7 @@ string linear_model::maxscore_tag(const sentence  &sen, int pos,bool averaged)
 	{
 		int offset = z->second*model.size();
 		score = count_score(offset, fv, averaged);
-		if (score >max_num+1e-10 )
+		if (score >=max_num+1e-10 )
 		{
 			max_num = score;
 			max_tag = z->first;
@@ -211,14 +211,14 @@ double linear_model::evaluate(dataset & data,bool averaged)
 }
 void linear_model::online_training(bool averaged, bool shuffle, int iterator, int exitor)
 {
-	ofstream result("small_result_shuff_averaged.txt");
+	ofstream result("small_result_shuffle.txt");
 	if (!result)
 	{
 		cout << "don't open feature file" << endl;
 	}
 	result << train.name << "共" << train.sentence_count << "个句子，共" << train.word_count << "个词" << endl;
 	result << dev.name << "共" << dev.sentence_count << "个句子，共" << dev.word_count << "个词" << endl;
-	result << test.name << "共" << test.sentence_count << "个句子，共" << test.word_count << "个词" << endl;
+//	result << test.name << "共" << test.sentence_count << "个句子，共" << test.word_count << "个词" << endl;
 	result << " the total number of features is " << model.size() << endl;
 	int update_times = 0;
 	int count = 0;

@@ -13,7 +13,7 @@ int main()
 
 	bool averaged = true;
 	bool shuffle = true;
-	int iterator = 20;
+	int iterator = 30;
 
 	string train_data_file = "train.conll.txt";
 	string dev_data_file = "dev.conll.txt";
