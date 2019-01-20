@@ -25,17 +25,17 @@ private:
 	map<string, int> tag;//词性
 	vector<int> w;
 	vector<int>v;
-	unordered_map<int, int> v_times;
+	vector<int> update_time;
 	vector<string> value;
 	//创建特征空间。
 	vector<string> create_feature(const sentence &sentence, int pos);
 	//在线算法
 	string maxscore_tag(const sentence &sen, int pos);
 	vector<int> get_id(vector<string> &f);
-	void update_weight(const sentence &sen, int pos, const string &max_tag,const string &correct_tag);
+	void update_weight(const sentence &sen, int pos, const string &max_tag,const string &correct_tag,int correct_time);
 	int count_score(int offset, vector<int> &fv);
-	int count_score_v(int offset, vector<int> fv);
-	string maxscore_tag_v(sentence  sen, int pos);
+	int count_score_v(int offset, vector<int> &fv);
+	string maxscore_tag_v(sentence & sen, int pos);
 	//评价。
 	double evaluate(dataset& );
 	double evaluate_v(dataset data);

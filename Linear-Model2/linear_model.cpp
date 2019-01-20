@@ -41,6 +41,7 @@ vector<string> linear_model::create_feature(const sentence &sentence, int pos)
 	f.emplace_back("07:*" + word_char_first);
 	f.emplace_back("08:*" + word_char_last);
 	int pos_word_len = sentence.word_char[pos].size();
+
 	for (int k = 1; k < pos_word_len - 1; k++)
 	{
 		string cik = sentence.word_char[pos][k];
@@ -53,8 +54,7 @@ vector<string> linear_model::create_feature(const sentence &sentence, int pos)
 			f.emplace_back("13:*" + cik + "*" + "consecutive");
 		}
 	}
-
-	if (sentence.word_char[pos].size() > 1)
+	if (pos_word_len > 1)
 	{
 		if (sentence.word_char[pos][0] == sentence.word_char[pos][1])
 			f.emplace_back("13:*" + sentence.word_char[pos][0] + "*" + "consecutive");
@@ -63,11 +63,15 @@ vector<string> linear_model::create_feature(const sentence &sentence, int pos)
 	{
 		f.emplace_back("12:*" + word + "*" + word_char_m1m1 + "*" + word_char_p1_first);
 	}
-	for (int k = 0; k <pos_word_len; k++)
+	for (int k = 0; k <4; k++)
 	{
-		if (k >= 4)break;
+		if (k >pos_word_len - 1)break;
 		f.emplace_back("14:*" + accumulate(sentence.word_char[pos].begin(), sentence.word_char[pos].begin() + k + 1, string("")));
 		f.emplace_back("15:*" + accumulate(sentence.word_char[pos].end() - (k + 1), sentence.word_char[pos].end(), string("")));
+
+//		cout << "14:*" + accumulate(sentence.word_char[pos].begin(), sentence.word_char[pos].begin() + k + 1, string("")) << endl;
+//		cout << "15:*" + accumulate(sentence.word_char[pos].end() - (k + 1), sentence.word_char[pos].end(), string(""))<< endl;
+
 	}
 	return f;
 }
@@ -101,12 +105,13 @@ void linear_model::create_feature_space()
 	}
 	w.reserve(tag.size()*model.size());
 	v.reserve(tag.size()*model.size());
+	update_time.reserve(tag.size()*model.size());
 	for (int i = 0; i < tag.size()*model.size(); i++)
 	{
 		w.emplace_back(0);
 		v.emplace_back(0);
+		update_time.emplace_back(0);
 	}
-	//cout << w.size() << endl;
 	cout << "the total number of features is " << model.size() << endl;
 	cout << "the total number of tags is " << tag.size() << endl;
 
@@ -125,35 +130,37 @@ vector<int> linear_model::get_id(vector<string> &f)
 	return fv;
 }
 //更新权重。
-void linear_model::update_weight(const sentence  &sen, int pos,const string &max_tag, const string &correct_tag)
+void linear_model::update_weight(const sentence  &sen, int pos,const string &max_tag, const string &correct_tag,int current_time)
 {
 
 	int max_id = tag[max_tag];
 	int correct_id = tag[correct_tag];
 	vector<string> f=create_feature(sen, pos);
 	vector<int> fv = get_id(f);
+	int last_w_value;
+	int last_time;
 	for (auto z = fv.begin(); z != fv.end(); z++)
 	{
+		//更新正确的权重
 		int index = correct_id * model.size() + *z;
+		last_w_value = w[index];
 		w[index]++;
-		//v[index] += w[index];
-		//v_times[index]++;
+		//更新V;
+		last_time = update_time[index]; //得到上次的更新时间。
+		update_time[index]= current_time;//更新时间。
+		v[index] += (current_time - last_time - 1)*last_w_value+w[index]; //更新权值。
+
+		//更新错误的权重
 		int index1 = max_id * model.size() + *z;
+		last_w_value = w[index1];
 		w[index1]--;
-		//v[index1] += w[index1];
-		//v_times[index1]++;
+		//更新V
+		last_time = update_time[index1];
+		update_time[index1] = current_time;//更新时间。
+		v[index1] += (current_time - last_time - 1)*last_w_value + w[index1]; //更新权值。
 	}
 }
-int linear_model::count_score(int offset, vector<int> &fv)
-{
-	double score = 0;
-	for (auto z0 = fv.begin(); z0 != fv.end(); z0++)
-	{
-		score = score + w[offset + *z0];
-	}
-	return score;
-}
-int linear_model::count_score_v(int offset, vector<int> fv)
+int linear_model::count_score_v(int offset, vector<int> &fv)
 {
 	double score = 0;
 	for (auto z0 = fv.begin(); z0 != fv.end(); z0++)
@@ -162,29 +169,9 @@ int linear_model::count_score_v(int offset, vector<int> fv)
 	}
 	return score;
 }
-
-string linear_model::maxscore_tag(const sentence  &sen, int pos)
+string linear_model::maxscore_tag_v(sentence  &sen, int pos)
 {
-	double max_num = -1e10, score;
-	string max_tag;
-	vector<string> f=create_feature(sen, pos);
-	vector<int> fv = get_id(f);
-	for (auto z = tag.begin(); z != tag.end(); z++)//遍历词性
-	{
-		int offset = z->second*model.size();
-		score = count_score(offset, fv);
-		if (score > max_num + 1e-10)
-		{
-			max_num = score;
-			max_tag = z->first;
-		}
-	}
-	return max_tag;
-}
-
-string linear_model::maxscore_tag_v(sentence  sen, int pos)
-{
-	double max_num = -1e10, score;
+	double max_num = -1, score;
 	string max_tag;
 	vector<string> f=create_feature(sen, pos);
 	vector<int> fv = get_id(f);
@@ -192,7 +179,7 @@ string linear_model::maxscore_tag_v(sentence  sen, int pos)
 	{
 		int offset = z->second*model.size();
 		score = count_score_v(offset, fv);
-		if (score > max_num + 1e-10)
+		if (score >=max_num)
 		{
 			max_num = score;
 			max_tag = z->first;
@@ -201,24 +188,6 @@ string linear_model::maxscore_tag_v(sentence  sen, int pos)
 	return max_tag;
 }
 double linear_model::evaluate(dataset & data)
-{
-	int c = 0, total = 0;
-	for (auto z = data.sentences.begin(); z != data.sentences.end(); z++)
-	{
-		for (int z0 = 0; z0 < z->word.size(); z0++)
-		{
-			total++;
-			string max_tag = maxscore_tag(*z, z0);
-			string correct_tag = z->tag[z0];
-			if (max_tag == correct_tag)
-			{
-				c++;
-			}
-		}
-	}
-	return (c / double(total));
-}
-double linear_model::evaluate_v(dataset data)
 {
 	int c = 0, total = 0;
 	for (auto z = data.sentences.begin(); z != data.sentences.end(); z++)
@@ -238,10 +207,12 @@ double linear_model::evaluate_v(dataset data)
 }
 void linear_model::online_training()
 {
+
+	int update_times = 0;
 	double max_train_precision = 0;
 	double max_dev_precision = 0;
 	double max_test_precision = 0;
-	ofstream result("small_result.txt");
+	ofstream result("big_result.txt");
 	if (!result)
 	{
 		cout << "don't open feature file" << endl;
@@ -249,10 +220,11 @@ void linear_model::online_training()
 	result << train.name << "共"<< train.sentence_count <<"个句子，共"<< train.word_count <<"个词"<< endl;
 	result << dev.name << "共" << dev.sentence_count << "个句子，共" << dev.word_count << "个词" << endl;
 	result << test.name << "共" << test.sentence_count << "个句子，共" << test.word_count << "个词" << endl;
+	result <<" the total number of features is "<< model.size() << endl;
 	DWORD t1, t2, t3, t4;
 	t1 = timeGetTime();
 
-	for (int i = 0; i < 26; i++)
+	for (int i = 0; i < 30; i++)
 	{
 		result<< "iterator " << i << endl;
 		cout << "iterator " << i << endl;
@@ -264,38 +236,46 @@ void linear_model::online_training()
 		{
 			for (int pos = 0; pos < sen->word.size(); pos++)
 			{
-				string max_tag = maxscore_tag(*sen, pos);
+				string max_tag = maxscore_tag_v(*sen, pos);
 				string correct_tag = sen->tag[pos];
 				if (max_tag != correct_tag)
 				{
-					update_weight(*sen, pos, max_tag, correct_tag);
+					update_times++;
+					update_weight(*sen, pos, max_tag, correct_tag,update_times);
 				}
 			}
 		}
-		/*
-		for (auto z = v_times.begin(); z != v_times.end(); z++)
+		int last_time,last_w_value;
+		int current_time = update_times;
+		for (int i = 0; i < v.size(); i++)
 		{
-			v[z->first] = v[z->first] / double(z->second);
+			last_time = update_time[i];
+			last_w_value = w[i];
+			if (last_time != current_time)
+			{
+				update_time[i] = current_time;
+				v[i] += (current_time - last_time - 1)*last_w_value; //更新权值。
+			}
 		}
-		*/
+
 	//	save_file(i);
 		double train_precision = evaluate(train);
-		//double train_precision_v = evaluate_v(train);
 		cout <<train.name << "=" << train_precision << endl;
-		//cout << train.name << "v=" << train_precision_v << endl;
+
 		double dev_precision = evaluate(dev);
-	//	double dev_precision_v = evaluate_v(dev);
 		cout << dev.name << "=" << dev_precision << endl;
+
 		double test_precision = evaluate(test);
 		cout << test.name << "=" << test_precision << endl;
 
-		//cout << dev.name << "v=" << dev_precision_v << endl;
 		result<< train.name << "=" << train_precision << endl;
 		result<< dev.name << "=" << dev_precision << endl;
 		result << test.name << "=" << test_precision << endl;
+
 		t4= timeGetTime();
 		cout << "Use Time:" << (t4- t3)*1.0 / 1000 << endl;
 		result << "Use Time:" << (t4 - t3)*1.0 / 1000 << endl;
+
 		if (train_precision > max_train_precision)
 		{
 			max_train_precision = train_precision;
@@ -308,8 +288,6 @@ void linear_model::online_training()
 		{
 			max_test_precision = test_precision;
 		}
-		//v.clear();
-		//v_times.clear();
 	}
 	cout << train.name << "=" << max_train_precision << endl;
 	cout << dev.name << "=" << max_dev_precision << endl;
