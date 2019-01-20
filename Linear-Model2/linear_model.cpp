@@ -41,7 +41,7 @@ vector<string> linear_model::create_feature(const sentence &sentence, int pos)
 	f.emplace_back("07:*" + word_char_first);
 	f.emplace_back("08:*" + word_char_last);
 	int pos_word_len = sentence.word_char[pos].size();
-	for (int k = 0; k < pos_word_len - 1; k++)
+	for (int k = 1; k < pos_word_len - 1; k++)
 	{
 		string cik = sentence.word_char[pos][k];
 		f.emplace_back("09:*" + cik);
@@ -53,20 +53,18 @@ vector<string> linear_model::create_feature(const sentence &sentence, int pos)
 			f.emplace_back("13:*" + cik + "*" + "consecutive");
 		}
 	}
-	/*
 	if (sentence.word_char[pos].size() > 1)
 	{
 		if (sentence.word_char[pos][0] == sentence.word_char[pos][1])
 			f.emplace_back("13:*" + sentence.word_char[pos][0] + "*" + "consecutive");
 	}
-	*/
 	if (pos_word_len == 1)
 	{
 		f.emplace_back("12:*" + word + "*" + word_char_m1m1 + "*" + word_char_p1_first);
 	}
 	for (int k = 0; k <pos_word_len; k++)
 	{
-		if (k >4)break;
+		if (k >=4)break;
 		f.emplace_back("14:*" + accumulate(sentence.word_char[pos].begin(), sentence.word_char[pos].begin() + k + 1, string("")));
 		f.emplace_back("15:*" + accumulate(sentence.word_char[pos].end() - (k + 1), sentence.word_char[pos].end(), string("")));
 	}
