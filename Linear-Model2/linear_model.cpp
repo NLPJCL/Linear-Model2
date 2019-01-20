@@ -164,6 +164,15 @@ int linear_model::count_score(int offset, vector<int> &fv)
 	}
 	return score;
 }
+int linear_model::count_score_v(int offset, vector<int> &fv)
+{
+	double score = 0;
+	for (auto z0 = fv.begin(); z0 != fv.end(); z0++)
+	{
+		score = score + v[offset + *z0];
+	}
+	return score;
+}
 string linear_model::maxscore_tag_v(const sentence  &sen, int pos)
 {
 	double max_num = -1e10, score;
@@ -173,7 +182,7 @@ string linear_model::maxscore_tag_v(const sentence  &sen, int pos)
 	for (auto z = tag.begin(); z != tag.end(); z++)//遍历词性
 	{
 		int offset = z->second*model.size();
-		score = count_score(offset, fv);
+		score = count_score_v(offset, fv);
 		if (score > max_num + 1e-10)
 		{
 			max_num = score;
@@ -208,7 +217,7 @@ double linear_model::evaluate(dataset & data)
 		for (int z0 = 0; z0 < z->word.size(); z0++)
 		{
 			total++;
-			string max_tag = maxscore_tag(*z, z0);
+			string max_tag = maxscore_tag_v(*z, z0);
 			string correct_tag = z->tag[z0];
 			if (max_tag == correct_tag)
 			{
@@ -249,7 +258,7 @@ void linear_model::online_training()
 		{
 			for (int pos = 0; pos < sen->word.size(); pos++)
 			{
-				string max_tag = maxscore_tag_v(*sen, pos);
+				string max_tag = maxscore_tag(*sen, pos);
 				string correct_tag = sen->tag[pos];
 				if (max_tag != correct_tag)
 				{

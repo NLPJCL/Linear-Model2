@@ -34,6 +34,7 @@ private:
 	vector<int> get_id(vector<string> &f);
 	void update_weight(const sentence &sen, int pos, const string &max_tag,const string &correct_tag,int correct_time);
 	int count_score(int offset, vector<int> &fv);
+	int count_score_v(int offset, vector<int> &fv);
 	string maxscore_tag_v(const sentence & sen, int pos);
 	//评价。
 	double evaluate(dataset& );
