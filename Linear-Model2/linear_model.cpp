@@ -171,7 +171,7 @@ int linear_model::count_score_v(int offset, vector<int> &fv)
 }
 string linear_model::maxscore_tag_v(sentence  &sen, int pos)
 {
-	double max_num = -1, score;
+	double max_num = 1e-10, score;
 	string max_tag;
 	vector<string> f=create_feature(sen, pos);
 	vector<int> fv = get_id(f);
@@ -179,7 +179,7 @@ string linear_model::maxscore_tag_v(sentence  &sen, int pos)
 	{
 		int offset = z->second*model.size();
 		score = count_score_v(offset, fv);
-		if (score >=max_num)
+		if (score >=max_num + 1e-10)
 		{
 			max_num = score;
 			max_tag = z->first;
@@ -254,7 +254,7 @@ void linear_model::online_training()
 			if (last_time != current_time)
 			{
 				update_time[i] = current_time;
-				v[i] += (current_time - last_time - 1)*last_w_value; //更新权值。
+				v[i] += (current_time - last_time )*last_w_value; //更新权值。
 			}
 		}
 

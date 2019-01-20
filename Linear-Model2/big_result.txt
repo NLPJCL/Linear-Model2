@@ -1,0 +1,10 @@
+train共46572个句子，共1057943个词
+dev共2079个句子，共59955个词
+test共2796个句子，共81578个词
+ the total number of features is 1400188
+iterator 0
+train=0.865221
+dev=0.834709
+test=0.830555
+Use Time:20.048
+iterator 1
