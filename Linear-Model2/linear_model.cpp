@@ -155,12 +155,12 @@ void linear_model::update_weight(const sentence  &sen, int pos,const string &max
 		v[index1] += (current_time - last_time - 1)*last_w_value + w[index1]; //更新权值。
 	}
 }
-int linear_model::count_score_v(int offset, vector<int> &fv)
+int linear_model::count_score(int offset, vector<int> &fv)
 {
 	double score = 0;
 	for (auto z0 = fv.begin(); z0 != fv.end(); z0++)
 	{
-		score = score + v[offset + *z0];
+		score = score + w[offset + *z0];
 	}
 	return score;
 }
@@ -173,7 +173,25 @@ string linear_model::maxscore_tag_v(const sentence  &sen, int pos)
 	for (auto z = tag.begin(); z != tag.end(); z++)//遍历词性
 	{
 		int offset = z->second*model.size();
-		score = count_score_v(offset, fv);
+		score = count_score(offset, fv);
+		if (score > max_num + 1e-10)
+		{
+			max_num = score;
+			max_tag = z->first;
+		}
+	}
+	return max_tag;
+}
+string linear_model::maxscore_tag(const sentence  &sen, int pos)
+{
+	double max_num = -1e10, score;
+	string max_tag;
+	vector<string> f = create_feature(sen, pos);
+	vector<int> fv = get_id(f);
+	for (auto z = tag.begin(); z != tag.end(); z++)//遍历词性
+	{
+		int offset = z->second*model.size();
+		score = count_score(offset, fv);
 		if (score > max_num + 1e-10)
 		{
 			max_num = score;
@@ -190,7 +208,7 @@ double linear_model::evaluate(dataset & data)
 		for (int z0 = 0; z0 < z->word.size(); z0++)
 		{
 			total++;
-			string max_tag = maxscore_tag_v(*z, z0);
+			string max_tag = maxscore_tag(*z, z0);
 			string correct_tag = z->tag[z0];
 			if (max_tag == correct_tag)
 			{

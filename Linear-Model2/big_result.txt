@@ -3,8 +3,8 @@ dev共2079个句子，共59955个词
 test共2796个句子，共81578个词
  the total number of features is 1400188
 iterator 0
-train=0.914222
-dev=0.894938
-test=0.893464
-Use Time:17.193
+train=0.936536
+dev=0.907514
+test=0.902486
+Use Time:18.382
 iterator 1
