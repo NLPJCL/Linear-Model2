@@ -216,7 +216,8 @@ void linear_model::online_training(bool averaged, bool shuffle, int iterator, in
 	}
 	result << train.name << "共" << train.sentence_count << "个句子，共" << train.word_count << "个词" << endl;
 	result << dev.name << "共" << dev.sentence_count << "个句子，共" << dev.word_count << "个词" << endl;
-//	result << test.name << "共" << test.sentence_count << "个句子，共" << test.word_count << "个词" << endl;
+	if (test.name.size() != 0)
+	result << test.name << "共" << test.sentence_count << "个句子，共" << test.word_count << "个词" << endl;
 	result << " the total number of features is " << model.size() << endl;
 	int update_times = 0;
 	int count = 0;
