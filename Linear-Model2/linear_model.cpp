@@ -36,12 +36,11 @@ vector<string> linear_model::create_feature(const sentence &sentence, int pos)
 	f.emplace_back("02:*" + word);
 	f.emplace_back("03:*" + word_m1);
 	f.emplace_back("04:*" + word_p1);
-	f.emplace_back("05:*" + word+"*"+word_char_m1m1);
-	f.emplace_back("06:*" + word+"*"+word_char_p1_first);
+	f.emplace_back("05:*" + word + "*" + word_char_m1m1);
+	f.emplace_back("06:*" + word + "*" + word_char_p1_first);
 	f.emplace_back("07:*" + word_char_first);
 	f.emplace_back("08:*" + word_char_last);
 	int pos_word_len = sentence.word_char[pos].size();
-
 	for (int k = 1; k < pos_word_len - 1; k++)
 	{
 		string cik = sentence.word_char[pos][k];
@@ -54,7 +53,7 @@ vector<string> linear_model::create_feature(const sentence &sentence, int pos)
 			f.emplace_back("13:*" + cik + "*" + "consecutive");
 		}
 	}
-	if (pos_word_len > 1)
+	if (sentence.word_char[pos].size() > 1)
 	{
 		if (sentence.word_char[pos][0] == sentence.word_char[pos][1])
 			f.emplace_back("13:*" + sentence.word_char[pos][0] + "*" + "consecutive");
@@ -63,15 +62,11 @@ vector<string> linear_model::create_feature(const sentence &sentence, int pos)
 	{
 		f.emplace_back("12:*" + word + "*" + word_char_m1m1 + "*" + word_char_p1_first);
 	}
-	for (int k = 0; k <4; k++)
+	for (int k = 0; k <pos_word_len; k++)
 	{
-		if (k >pos_word_len - 1)break;
+		if (k >=4)break;
 		f.emplace_back("14:*" + accumulate(sentence.word_char[pos].begin(), sentence.word_char[pos].begin() + k + 1, string("")));
 		f.emplace_back("15:*" + accumulate(sentence.word_char[pos].end() - (k + 1), sentence.word_char[pos].end(), string("")));
-
-//		cout << "14:*" + accumulate(sentence.word_char[pos].begin(), sentence.word_char[pos].begin() + k + 1, string("")) << endl;
-//		cout << "15:*" + accumulate(sentence.word_char[pos].end() - (k + 1), sentence.word_char[pos].end(), string(""))<< endl;
-
 	}
 	return f;
 }
@@ -169,17 +164,17 @@ int linear_model::count_score_v(int offset, vector<int> &fv)
 	}
 	return score;
 }
-string linear_model::maxscore_tag_v(sentence  &sen, int pos)
+string linear_model::maxscore_tag_v(const sentence  &sen, int pos)
 {
-	double max_num = 1e-10, score;
+	double max_num = -1e10, score;
 	string max_tag;
-	vector<string> f=create_feature(sen, pos);
+	vector<string> f = create_feature(sen, pos);
 	vector<int> fv = get_id(f);
 	for (auto z = tag.begin(); z != tag.end(); z++)//遍历词性
 	{
 		int offset = z->second*model.size();
 		score = count_score_v(offset, fv);
-		if (score >=max_num + 1e-10)
+		if (score > max_num + 1e-10)
 		{
 			max_num = score;
 			max_tag = z->first;
@@ -254,7 +249,7 @@ void linear_model::online_training()
 			if (last_time != current_time)
 			{
 				update_time[i] = current_time;
-				v[i] += (current_time - last_time )*last_w_value; //更新权值。
+				v[i] += (current_time - last_time)*last_w_value; //更新权值。
 			}
 		}
 

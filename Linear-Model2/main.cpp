@@ -17,17 +17,6 @@ int main()
 
 
 	//test::test_accumulate();
-	/*
-	dataset sen;
-	sen.read_data("train");
-
-	cout<<sen.sentences[0].word[0]<<endl;
-
-
-	sen.shuffle();
-	cout << sen.sentences[0].word[0] << endl;
-	*/
-
 	system("pause");
 	return 0;
 }
