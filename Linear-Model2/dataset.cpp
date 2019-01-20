@@ -3,10 +3,10 @@
 void dataset::read_data(const string & file_name)
 {
 	name = file_name;
-	ifstream file(file_name + ".conll.txt");
+	ifstream file(file_name);
 	if (!file)
 	{
-		cout << "don't open " + file_name + "conll.txt" << endl;
+		cout << "don't open " + file_name << endl;
 	}
 	string line;
 	sentence sen;
@@ -34,19 +34,19 @@ void dataset::read_data(const string & file_name)
 		{
 			if ((unsigned char)word[t4] > 129 && (unsigned char)word[t4 + 1] > 64)
 			{
-				word_char.push_back(word.substr(t4, 2));
+				word_char.emplace_back(word.substr(t4, 2));
 				t4 = t4 + 2;
 			}
 			else
 			{
-				word_char.push_back(word.substr(t4, 1));
+				word_char.emplace_back(word.substr(t4, 1));
 				t4++;
 			}
 		}
-		sen.word_char.push_back(word_char);
+		sen.word_char.emplace_back(word_char);
 	}
-	cout << name << ".conll contains sentence count " << sentence_count << endl;
-	cout << name << ".conll contains word count " << word_count << endl;
+	cout << name << "contains sentence count " << sentence_count << endl;
+	cout << name << "contains word count " << word_count << endl;
 }
 #include<ctime>
 #include<unordered_set>
@@ -54,7 +54,6 @@ void dataset::read_data(const string & file_name)
 #include"windows.h"
 void dataset::shuffle()
 {
-	cout << timeGetTime() << endl;
 	default_random_engine t(timeGetTime());
 
 	uniform_int_distribution<int> u(0, sentences.size()-1);
@@ -73,11 +72,14 @@ void dataset::shuffle()
 		}
 	}
 	sentences = sentences_;
-	cout << "经过" << j << "次循环"<<endl;
 }
 
 dataset::dataset()
 {
+	
+
+
+
 }
 
 
